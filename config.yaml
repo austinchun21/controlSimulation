@@ -5,3 +5,8 @@ main:
   window_width: 640
   bi_width: 25
   bi_height: 5
+  # kg
+  bi_mass: 0.5
+  max_thrust: 100 # Newtons, is that reasonable?
+
+  

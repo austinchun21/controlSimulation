@@ -9,37 +9,23 @@
 import math
 import time
 from gui.gui import GUI
+from BiCopter import BiCopter
 
 timeStep = 0.01
 GRAVITY = 9.81
 MASS = 1
 GROUND_HEIGHT = 50
 
-class BiCopter():
-
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-
-        self.x = 0
-        self.y = 0
-        self.vx = 0
-        self.vy = 0
-
-
-
-    def updatePos(self, fx, fy, tau):
-        self.x = self.x + self.vx*timeStep + 0.5*fx*timeStep**2
-        self.y = self.y + self.vy*timeStep + 0.5*MASS*(fy-GRAVITY)*timeStep**2
-
-        if self.y < 0:
-            self.y = 0
-
-
-
 def main():
     g = GUI()
-    bi = BiCopter(25, 5)
+
+    bi = BiCopter(0.0,0.0,0.0)
+
+    i = 0
+
+
+    F1 = 1.0*bi.m*GRAVITY #+ 0.01math.sin(i/180.0)
+    F2 = F1
 
     while True:
         if g.quitFlag:
@@ -49,21 +35,25 @@ def main():
             g.tk.update_idletasks()
             g.tk.update()
             time.sleep(0.01)
+            bi.setStartTime() # Continuously set start time until you actually start
             continue
 
 
-        x = g.bi_x
-        y = g.bi_y - 1
-        g.animateBi(x, y, 0)
-        print("test")
-        print("{},{}".format(g.bi_x,g.bi_y))
+
+        bi.updateForces(F1, F2)
+        bi.physics()
+
+        pos = bi.getPos()
+
+        g.animateBi(pos[0], pos[1], pos[2])
+        print("{},{},{}".format(pos[0], pos[1], pos[2]))
         g.tk.update_idletasks()
         g.tk.update()
-        time.sleep(0.03)
-        # break
+        # time.sleep(0.01)
 
 
 
+        i += 1
 
 if __name__ == "__main__":
     try:

@@ -82,13 +82,22 @@ class GUI():
 
         # Draw BiCopter
         midScreen = self.width/2.0
-        self.bi = self.w.create_rectangle(midScreen - self.bi_w/2, ground-self.bi_h,
-                                        midScreen + self.bi_w/2, ground, fill='blue')
+        x1,y1 = midScreen - self.bi_w/2, ground-self.bi_h
+        x2,y2 = midScreen + self.bi_w/2, ground-self.bi_h
+        x3,y3 = midScreen + self.bi_w/2, ground
+        x4,y4 = midScreen - self.bi_w/2, ground
+        self.bi = self.w.create_polygon(x1,y1,x2,y2,x3,y3,x4,y4, fill='blue')
+
+
+        # self.bi = self.w.create_rectangle(midScreen - self.bi_w/2, ground-self.bi_h,
+        #                                 midScreen + self.bi_w/2, ground, fill='blue')
+
 
         # Set biCopter coordinates
         # Define 0,0 to be center on the ground
+        self.origin = [midScreen, ground]
         self.bi_x = 0
-        self.bi_y = 0 # ground - self.bi_h
+        self.bi_y = 0 # Define origin of BiCopter to be bottom middle
         self.bi_theta = 0
 
         self.w.pack()
@@ -107,27 +116,63 @@ class GUI():
 
 
     def animateBi(self, x, y, theta):
-        print("{},{}".format(x-self.bi_x, y-self.bi_y))
-        self.w.move(self.bi, x-self.bi_x, y-self.bi_y)
+        # print("{},{}".format(x-self.bi_x, y-self.bi_y))
+        
+        # Calculate difference
+        # dx = x-self.bi_x
+        # dy = y-self.bi_y
+
+        true_x = x + self.width/2
+        true_y = -y + self.height - GROUND_HEIGHT 
+
+        x1,y1 = true_x - self.bi_w/2, true_y-self.bi_h
+        x2,y2 = true_x + self.bi_w/2, true_y-self.bi_h
+        x3,y3 = true_x + self.bi_w/2, true_y
+        x4,y4 = true_x - self.bi_w/2, true_y        
+
+        print("Coords: ", self.w.coords(self.bi))
+
+        self.w.coords(self.bi, x1,y1,x2,y2,x3,y3,x4,y4)
+
+        # self.w.coords(self.bi, [true_x-self.bi_w/2, true_y-self.bi_h, 
+        #                         true_x+self.bi_w/2, true_y])
+        # self.w.move(self.bi, dx, -dy) # negative dy because define up to be positive
         self.bi_x = x
         self.bi_y = y
 
-# g = GUI()
 
-# while(True):
-#     if g.quitFlag:
-#         g.tk.destroy()
-#         break
-#     if not g.startFlag:
-#         g.tk.update_idletasks()
-#         g.tk.update()
-#         time.sleep(0.01)
-#         continue
+def main():
+    g = GUI()
 
-#     g.animateBi(0,0,0)
-#     g.tk.update_idletasks()
-#     g.tk.update()
-#     time.sleep(0.03)
+    i = 0
+    while(True):
+        if g.quitFlag:
+            g.tk.destroy()
+            break
+        if not g.startFlag:
+            g.tk.update_idletasks()
+            g.tk.update()
+            time.sleep(0.01)
+            continue
 
-# print("Closed GUI")
+        g.animateBi(i,i,0)
+        i += 1
+        # coords = g.w.coords(g.bi)
+        # print(coords)
+        # coords[1] += -1
+        # g.w.coords(g.bi, coords)
 
+
+
+        g.tk.update_idletasks()
+        g.tk.update()
+        time.sleep(0.03)
+
+    print("Closed GUI")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('')
