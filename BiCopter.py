@@ -3,14 +3,15 @@ import math
 import time
 
 
-MASS = 0.1 
-BI_WIDTH = 0.25 # cm
-BI_HEIGHT = 0.05 
-GRAVITY = 9.81
+MASS = 1
+BI_WIDTH = 1 #0.25 # m
+BI_HEIGHT = 0.2 #0.05 
+GRAVITY = 1009.81
 
-# x = x, y, theta, vx, vy, w
-# x. = vx, vy, w, vx., vy., w.
-# Ax + Bu = x.
+TORS_DAMP = 0.04
+LIN_DAMP = 0.04
+
+
  
 
 class BiCopter():
@@ -33,7 +34,7 @@ class BiCopter():
 		self.m = MASS
 		self.L = BI_WIDTH
 		self.h = BI_HEIGHT
-		self.I = self.L*self.h/12 * (self.L**2 + self.h**2)
+		self.I = self.m * self.L*self.h/12 * (self.L**2 + self.h**2)
 
 		self.lastTime = time.time()
 
@@ -46,24 +47,34 @@ class BiCopter():
 	def physics(self):
 
 		# Calculate accelerations
-		ax = -1/self.m*math.sin(self.theta)*(self.F1+self.F2)
-		ay = 1/self.m*math.cos(self.theta)*(self.F1+self.F2) - self.m*GRAVITY
-		alpha = self.L/(2*self.I) * (self.F2-self.F1)
+		ax = -1/self.m*math.sin(self.theta)*(self.F1+self.F2) - LIN_DAMP/self.m * self.vx
+		ay = 1/self.m*math.cos(self.theta)*(self.F1+self.F2) - GRAVITY - LIN_DAMP/self.m * self.vy
+		# print("ay: ",ay)
+		alpha = self.L/(2*self.I) * (self.F2-self.F1) - TORS_DAMP/self.I * self.w
+		# print("alpha: ", alpha)
 
 		# Calculate timeStep
 		curTime = time.time()
 		timeStep = curTime - self.lastTime
+		print("TimeStep: ", timeStep)
 		self.lastTime = curTime
 
 		# Update position
-		self.x = self.x + self.vx*timeStep + 0.5*ax*timeStep**2
-		self.y = self.y + self.vy*timeStep + 0.5*ay*timeStep**2
-		self.theta = self.theta + self.w*timeStep + 0.5*alpha*timeStep**2
+		self.x += self.vx*timeStep + 0.5*ax*timeStep**2
+		self.y += self.vy*timeStep + 0.5*ay*timeStep**2
+		self.theta += self.w*timeStep + 0.5*alpha*timeStep**2
 
 		# Update velocities
-		self.vx = self.vx + ax*timeStep
-		self.vy = self.vy + ay*timeStep
-		self.w = self.w + alpha*timeStep
+		self.vx += ax*timeStep
+		self.vy += ay*timeStep
+		self.w += alpha*timeStep
+
+
+		# Ground force
+		if self.y < 0:
+			if self.vy < 0:
+				self.vy = -0.5*self.vy
+			self.y = 0
 
 
 	def updateForces(self, F1, F2):

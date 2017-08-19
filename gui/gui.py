@@ -10,6 +10,7 @@
 from tkinter import *
 import time
 import random
+import math
 import yaml
 import os
 
@@ -88,6 +89,9 @@ class GUI():
         x4,y4 = midScreen - self.bi_w/2, ground
         self.bi = self.w.create_polygon(x1,y1,x2,y2,x3,y3,x4,y4, fill='blue')
 
+        self.thrustL = self.w.create_line(x4,y4,x4,y4, fill='red')
+        self.thrustR = self.w.create_line(x3,y3,x3,y3, fill='red')
+
 
         # self.bi = self.w.create_rectangle(midScreen - self.bi_w/2, ground-self.bi_h,
         #                                 midScreen + self.bi_w/2, ground, fill='blue')
@@ -115,30 +119,48 @@ class GUI():
         self.quitFlag = True
 
 
-    def animateBi(self, x, y, theta):
-        # print("{},{}".format(x-self.bi_x, y-self.bi_y))
-        
-        # Calculate difference
-        # dx = x-self.bi_x
-        # dy = y-self.bi_y
-
+    """
+    x: position in defined reference frame
+    y: position in defined reference fram
+    theta: in radians
+    """
+    def animateBi(self, x, y, theta, F1, F2, m, g):
+        # Convert to SCREEN coordinate system
         true_x = x + self.width/2
         true_y = -y + self.height - GROUND_HEIGHT 
 
-        x1,y1 = true_x - self.bi_w/2, true_y-self.bi_h
-        x2,y2 = true_x + self.bi_w/2, true_y-self.bi_h
-        x3,y3 = true_x + self.bi_w/2, true_y
-        x4,y4 = true_x - self.bi_w/2, true_y        
+        # theta = math.radians(theta)
+        sin = math.sin(theta)
+        cos = math.cos(theta)
 
-        print("Coords: ", self.w.coords(self.bi))
+        x3,y3 = true_x + self.bi_w/2*cos, true_y - self.bi_w/2*sin # lower right
+        x4,y4 = true_x - self.bi_w/2*cos, true_y + self.bi_w/2*sin # lower left       
 
+        x1,y1 = x4 - self.bi_h*sin, y4 - self.bi_h*cos #true_x - self.bi_w/2, true_y-self.bi_h # Upper left
+        x2,y2 = x3 - self.bi_h*sin, y3 - self.bi_h*cos #true_x + self.bi_w/2, true_y-self.bi_h # upper right
+        
+
+        # print("Coords: ", self.w.coords(self.bi))
+
+        # Update the coords of the bicopter in the GUI
         self.w.coords(self.bi, x1,y1,x2,y2,x3,y3,x4,y4)
 
-        # self.w.coords(self.bi, [true_x-self.bi_w/2, true_y-self.bi_h, 
-        #                         true_x+self.bi_w/2, true_y])
-        # self.w.move(self.bi, dx, -dy) # negative dy because define up to be positive
+        # Update thrusters
+        tL_val = F1/(m*g) * 50
+        tR_val = F1/(m*g) * 50
+
+        tL_endx, tL_endy = x4+tL_val*sin , y4+tL_val*cos
+        tR_endx, tR_endy = x3+tR_val*sin , y3+tR_val*cos
+
+        self.w.coords(self.thrustL, x4,y4, tL_endx, tL_endy)
+        self.w.coords(self.thrustR, x3,y3, tR_endx, tR_endy)
+
+
+
+        # Save new coordss
         self.bi_x = x
         self.bi_y = y
+        self.bi_theta = theta
 
 
 def main():
@@ -155,7 +177,7 @@ def main():
             time.sleep(0.01)
             continue
 
-        g.animateBi(i,i,0)
+        g.animateBi(0,i,2*i/180) # [pixles(cm), radians]
         i += 1
         # coords = g.w.coords(g.bi)
         # print(coords)

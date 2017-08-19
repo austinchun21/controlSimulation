@@ -3,10 +3,10 @@ main:
   ground_height: 50
   window_height: 480
   window_width: 640
-  bi_width: 25
-  bi_height: 5
+  bi_width: 100
+  bi_height: 20
   # kg
-  bi_mass: 0.5
+  bi_mass: 5
   max_thrust: 100 # Newtons, is that reasonable?
 
   
