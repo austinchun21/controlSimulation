@@ -125,9 +125,10 @@ class GUI():
     theta: in radians
     """
     def animateBi(self, x, y, theta, F1, F2, m, g):
-        # Convert to SCREEN coordinate system
-        true_x = x + self.width/2
-        true_y = -y + self.height - GROUND_HEIGHT 
+        # Convert to SCREEN coordinate system!!! 
+        # AND convert units (to cm now instead of meters)
+        true_x = 100*x + self.width/2
+        true_y = -100*y + self.height - GROUND_HEIGHT 
 
         # theta = math.radians(theta)
         sin = math.sin(theta)
@@ -161,6 +162,10 @@ class GUI():
         self.bi_x = x
         self.bi_y = y
         self.bi_theta = theta
+
+    def drawDest(self, des_height):
+        trueHeight = self.origin[1] - des_height*100
+        self.w.create_line(0, trueHeight, self.width, trueHeight, fill='red')
 
 
 def main():

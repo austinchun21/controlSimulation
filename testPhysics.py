@@ -11,17 +11,15 @@ import time
 from gui.gui import GUI
 from BiCopter import BiCopter
 
-GRAVITY = 1009.81
+GRAVITY = 9.81
 
 def main():
     g = GUI()
-
     bi = BiCopter(0.0,0.0,0.0)
-
     i = 0
 
 
-    F1 = 0.9*bi.m*GRAVITY #+ 0.01math.sin(i/180.0)
+    F1 = 0.8*bi.m*GRAVITY #+ 0.01math.sin(i/180.0)
     F2 = F1
 
 
@@ -32,6 +30,9 @@ def main():
             g.tk.destroy()
             break
         if not g.startFlag:
+
+            g.startFlag = True
+
             g.tk.update_idletasks()
             g.tk.update()
             time.sleep(0.01)
@@ -43,14 +44,16 @@ def main():
         if time.time() - veryStart > 2:
             # print("Thruster ERROR")
             F1 = 0.51*bi.m*GRAVITY
-            F2 = F1 #.0001*bi.m*GRAVITY
+            F2 = 0.999*F1 #.0001*bi.m*GRAVITY
             if time.time() - veryStart > 5:
                 F1 = 0
                 F2 = 0
 
         else:
-            F1 = F1*0.999
-            F2 = F2*0.999
+            F1 = F1*0.9991
+            F2 = F2*0.9991
+
+        # print("Time since start: ",time.time()-veryStart)
 
         bi.updateForces(F1, F2)
         bi.physics()
