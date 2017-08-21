@@ -10,6 +10,7 @@
 from tkinter import *
 import time
 import random
+import math
 import yaml
 import os
 
@@ -82,13 +83,25 @@ class GUI():
 
         # Draw BiCopter
         midScreen = self.width/2.0
-        self.bi = self.w.create_rectangle(midScreen - self.bi_w/2, ground-self.bi_h,
-                                        midScreen + self.bi_w/2, ground, fill='blue')
+        x1,y1 = midScreen - self.bi_w/2, ground-self.bi_h
+        x2,y2 = midScreen + self.bi_w/2, ground-self.bi_h
+        x3,y3 = midScreen + self.bi_w/2, ground
+        x4,y4 = midScreen - self.bi_w/2, ground
+        self.bi = self.w.create_polygon(x1,y1,x2,y2,x3,y3,x4,y4, fill='blue')
+
+        self.thrustL = self.w.create_line(x4,y4,x4,y4, fill='red')
+        self.thrustR = self.w.create_line(x3,y3,x3,y3, fill='red')
+
+
+        # self.bi = self.w.create_rectangle(midScreen - self.bi_w/2, ground-self.bi_h,
+        #                                 midScreen + self.bi_w/2, ground, fill='blue')
+
 
         # Set biCopter coordinates
         # Define 0,0 to be center on the ground
+        self.origin = [midScreen, ground]
         self.bi_x = 0
-        self.bi_y = 0 # ground - self.bi_h
+        self.bi_y = 0 # Define origin of BiCopter to be bottom middle
         self.bi_theta = 0
 
         self.w.pack()
@@ -106,28 +119,87 @@ class GUI():
         self.quitFlag = True
 
 
-    def animateBi(self, x, y, theta):
-        print("{},{}".format(x-self.bi_x, y-self.bi_y))
-        self.w.move(self.bi, x-self.bi_x, y-self.bi_y)
+    """
+    x: position in defined reference frame
+    y: position in defined reference fram
+    theta: in radians
+    """
+    def animateBi(self, x, y, theta, F1, F2, m, g):
+        # Convert to SCREEN coordinate system!!! 
+        # AND convert units (to cm now instead of meters)
+        true_x = 100*x + self.width/2
+        true_y = -100*y + self.height - GROUND_HEIGHT 
+
+        # theta = math.radians(theta)
+        sin = math.sin(theta)
+        cos = math.cos(theta)
+
+        x3,y3 = true_x + self.bi_w/2*cos, true_y - self.bi_w/2*sin # lower right
+        x4,y4 = true_x - self.bi_w/2*cos, true_y + self.bi_w/2*sin # lower left       
+
+        x1,y1 = x4 - self.bi_h*sin, y4 - self.bi_h*cos #true_x - self.bi_w/2, true_y-self.bi_h # Upper left
+        x2,y2 = x3 - self.bi_h*sin, y3 - self.bi_h*cos #true_x + self.bi_w/2, true_y-self.bi_h # upper right
+        
+
+        # print("Coords: ", self.w.coords(self.bi))
+
+        # Update the coords of the bicopter in the GUI
+        self.w.coords(self.bi, x1,y1,x2,y2,x3,y3,x4,y4)
+
+        # Update thrusters
+        tL_val = F1/(m*g) * 50
+        tR_val = F1/(m*g) * 50
+
+        tL_endx, tL_endy = x4+tL_val*sin , y4+tL_val*cos
+        tR_endx, tR_endy = x3+tR_val*sin , y3+tR_val*cos
+
+        self.w.coords(self.thrustL, x4,y4, tL_endx, tL_endy)
+        self.w.coords(self.thrustR, x3,y3, tR_endx, tR_endy)
+
+
+
+        # Save new coordss
         self.bi_x = x
         self.bi_y = y
+        self.bi_theta = theta
 
-# g = GUI()
+    def drawDest(self, des_height):
+        trueHeight = self.origin[1] - des_height*100
+        self.w.create_line(0, trueHeight, self.width, trueHeight, fill='red')
 
-# while(True):
-#     if g.quitFlag:
-#         g.tk.destroy()
-#         break
-#     if not g.startFlag:
-#         g.tk.update_idletasks()
-#         g.tk.update()
-#         time.sleep(0.01)
-#         continue
 
-#     g.animateBi(0,0,0)
-#     g.tk.update_idletasks()
-#     g.tk.update()
-#     time.sleep(0.03)
+def main():
+    g = GUI()
 
-# print("Closed GUI")
+    i = 0
+    while(True):
+        if g.quitFlag:
+            g.tk.destroy()
+            break
+        if not g.startFlag:
+            g.tk.update_idletasks()
+            g.tk.update()
+            time.sleep(0.01)
+            continue
 
+        g.animateBi(0,i,2*i/180) # [pixles(cm), radians]
+        i += 1
+        # coords = g.w.coords(g.bi)
+        # print(coords)
+        # coords[1] += -1
+        # g.w.coords(g.bi, coords)
+
+
+
+        g.tk.update_idletasks()
+        g.tk.update()
+        time.sleep(0.03)
+
+    print("Closed GUI")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('')
