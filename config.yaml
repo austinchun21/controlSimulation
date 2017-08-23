@@ -1,8 +1,8 @@
 main:
   # Assume in centimeters
   ground_height: 50
-  window_height: 720
-  window_width: 1080
+  window_height: 480
+  window_width: 640
 
   bi_width: 50
   bi_height: 10

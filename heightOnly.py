@@ -14,9 +14,9 @@ from BiCopter import BiCopter
 
 g = 9.81
 
-des_height = 3 # meters
+des_height = 2 # meters
 
-Kp = 0.01
+Kp = 0.1
 Ki = 0.001
 
 sum_e = 0
@@ -36,8 +36,28 @@ def Pcontrol(bi):
     return F1, F2
 
 
+def polePlace(bi):
+    y = bi.getPos()[1]
+    vy = bi.getVel()[1]
+
+    K = [300, 54.98]
+
+    return K[0]*y + K[1]*vy
+
+def feedback(bi):
+    Kr = 300
+    r = des_height * Kr
+
+    Ku = polePlace(bi)
+    F = r - Ku + 0.5*bi.m*g
+
+    return F, F
+
 def main():
+    global des_height
+
     gui = GUI()
+    # gui.drawDest()
     bi = BiCopter(0.0,0.0,0.0)
     i = 0
 
@@ -49,9 +69,7 @@ def main():
             gui.tk.destroy()
             break
         if not gui.startFlag:
-
-            gui.startFlag = True
-            gui.drawDest(des_height)
+            # gui.startFlag = True
             gui.tk.update_idletasks()
             gui.tk.update()
             time.sleep(0.01)
@@ -60,13 +78,17 @@ def main():
             continue
 
 
-        F1, F2 = Pcontrol(bi)
+
+        # F1, F2 = Pcontrol(bi)
+        F1, F2 = feedback(bi)
 
         bi.updateForces(F1, F2) 
         bi.physics() # Updates position
 
         pos = bi.getPos()
         gui.animateBi(pos[0], pos[1], pos[2], bi.F1, bi.F2, bi.m, g)
+        gui.drawDest()
+        des_height = gui.des_height
 
         # Update GUI
         gui.tk.update_idletasks()

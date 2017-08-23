@@ -77,6 +77,13 @@ class GUI():
         self.quit = Button(self.tk, text="Quit", command=self.quitCall)
         self.quit.pack()
 
+        # Slider
+        self.heightEntry = Entry(self.tk)
+        self.heightEntry.pack()
+        self.getHeight = Button(self.tk, text="setHeight", width=10,command=self.heightCallback)
+        self.getHeight.pack()
+        self.des_height = 0
+
         # Draw ground
         ground = self.height-GROUND_HEIGHT
         self.w.create_rectangle(0,ground, self.width, self.height, fill='black')
@@ -92,6 +99,8 @@ class GUI():
         self.thrustL = self.w.create_line(x4,y4,x4,y4, fill='red')
         self.thrustR = self.w.create_line(x3,y3,x3,y3, fill='red')
 
+        # Draw destination line
+        self.dest = self.w.create_line(0,ground,self.width,ground, fill='red')
 
         # self.bi = self.w.create_rectangle(midScreen - self.bi_w/2, ground-self.bi_h,
         #                                 midScreen + self.bi_w/2, ground, fill='blue')
@@ -117,6 +126,23 @@ class GUI():
     def quitCall(self):
         print("Quit")
         self.quitFlag = True
+    def heightCallback(self):
+        s = self.heightEntry.get()
+        try:
+            h = float(s)
+        except:
+            print("setHeight entry must be a number")
+            self.heightEntry.delete(0,'end')
+            return -1
+        if h < 0 or h > 4.0:
+            print("setHeight must be between 0 and 4.0")
+            self.heightEntry.delete(0,'end')
+            return -1
+        self.des_height = round(h,2)
+        self.heightEntry.delete(0,'end')
+        # self.heightEntry.insert(0, "")
+        return 0
+
 
 
     """
@@ -163,9 +189,11 @@ class GUI():
         self.bi_y = y
         self.bi_theta = theta
 
-    def drawDest(self, des_height):
+    def drawDest(self):
+        des_height = self.des_height
         trueHeight = self.origin[1] - des_height*100
-        self.w.create_line(0, trueHeight, self.width, trueHeight, fill='red')
+        self.w.coords(self.dest, 0, trueHeight, self.width, trueHeight)
+        # self.w.create_line(0, trueHeight, self.width, trueHeight, fill='red')
 
 
 def main():

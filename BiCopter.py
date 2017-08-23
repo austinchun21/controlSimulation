@@ -9,8 +9,8 @@ BI_WIDTH = -1 # m
 BI_HEIGHT = -1  
 GRAVITY = -1 # m/s2
 
-TORS_DAMP = 0.4
-LIN_DAMP = 0.4
+TORS_DAMP = 0.04
+LIN_DAMP = 0.04
 
 # Get parent directory name
 here = os.path.dirname(os.path.realpath(__file__))
